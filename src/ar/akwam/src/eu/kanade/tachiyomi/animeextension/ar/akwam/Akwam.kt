@@ -148,9 +148,9 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
                     addQueryParameter("quality", searchQuality.toUriPart())
                 }
             } else {
-                addPathSegment(typeFilter.toUriPart())
+                addPathSegment(typeFilter.toUriPart() ?: "movies")
                 if (sectionFilter.state != 0) {
-                    url.addQueryParameter("section", sectionFilter.toUriPart())
+                    addQueryParameter("section", sectionFilter.toUriPart())
                 }
                 if (categoryFilter.state != 0) {
                     addQueryParameter("category", categoryFilter.toUriPart())
@@ -161,7 +161,7 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
             }
             addQueryParameter("page", page.toString())
         }
-        return GET(url, headers)
+        return GET(url.toString(), headers)
     }
 
     // =========================== Anime Details ============================
@@ -201,7 +201,7 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
         RatingFilter(),
     )
 
-    private class SearchSection(vals: Array<Pair<String?, String>>) :
+    private class SearchSection() :
         PairFilter(
             "بحث عن",
             arrayOf(
@@ -212,7 +212,7 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
             )
         )
 
-    private class SearchRating(vals: Array<Pair<String?, String>>) :
+    private class SearchRating() :
         PairFilter(
             "التقيم",
             arrayOf(
@@ -229,7 +229,7 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
             )
         )
 
-    private class SearchFormat(vals: Array<Pair<String?, String>>) :
+    private class SearchFormat() :
         PairFilter(
             "الجودة",
             arrayOf(
@@ -251,7 +251,7 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
             )
         )
 
-    private class SearchQuality(vals: Array<Pair<String?, String>>) :
+    private class SearchQuality() :
         PairFilter(
             "الدقة",
             arrayOf(
@@ -266,21 +266,20 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
             )
         )
 
-    private class TypeFilter(vals: Array<Pair<String?, String>>) :
+    private class TypeFilter() :
         PairFilter(
             "النوع",
             arrayOf(
-                Pair("0", "الكل"),
                 Pair("movies", "افلام"),
                 Pair("series", "مسلسلات"),
             )
         )
 
-    private class SectionFilter(vals: Array<Pair<String?, String>>) :
+    private class SectionFilter() :
         PairFilter(
             "القسم",
             arrayOf(
-                Pair("0", "القسم"),
+                Pair("0", "اختر"),
                 Pair("29", "عربي"),
                 Pair("30", "اجنبي"),
                 Pair("31", "هندي"),
@@ -289,11 +288,11 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
             )
         )
 
-    private class CategoryFilter(vals: Array<Pair<String?, String>>) :
+    private class CategoryFilter() :
         PairFilter(
             "التصنيف",
             arrayOf(
-                Pair("0", "التصنيف"),
+                Pair("0", "اختر"),
                 Pair("87", "رمضان"),
                 Pair("30", "انمي"),
                 Pair("18", "اكشن"),
@@ -322,11 +321,11 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
             )
         )
 
-    private class RatingFilter(vals: Array<Pair<String?, String>>) :
+    private class RatingFilter() :
         PairFilter(
             "التقييم",
             arrayOf(
-                Pair("0", "التقييم"),
+                Pair("0", "اخنر"),
                 Pair("1", "1+"),
                 Pair("2", "2+"),
                 Pair("3", "3+"),
@@ -339,7 +338,7 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
             )
         )
 
-    open class PairFilter(displayName: String, private val vals: Array<Pair<String?, String>>) :
+    open class PairFilter(displayName: String, private val ) :
         AnimeFilter.Select<String>(displayName, vals.map { it.second }.toTypedArray()) {
         fun toUriPart() = vals[state].first
     }
@@ -351,7 +350,7 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
     override fun setupPreferenceScreen(screen: PreferenceScreen) {
         screen.addListPreference(
             key = PREF_QUALITY_KEY,
-            title = intl["preferred_quality"],
+            title = "الجودة المفضلة",
             entries = listOf("1080p", "720p", "480p", "360p", "240p"),
             entryValues = listOf("1080", "720", "480", "360", "240"),
             default = PREF_QUALITY_DEFAULT,
