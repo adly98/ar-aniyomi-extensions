@@ -338,7 +338,7 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
             )
         )
 
-    open class PairFilter(displayName: String, private val ) :
+    open class PairFilter(displayName: String, private val vals: Array<Pair<String, String>>) :
         AnimeFilter.Select<String>(displayName, vals.map { it.second }.toTypedArray()) {
         fun toUriPart() = vals[state].first
     }
