@@ -47,7 +47,7 @@ class MultiVideoExtractor(private val client: OkHttpClient) {
                     source.attr("label").ifBlank {
                         source.attr("title").ifBlank {
                             source.attr("res").ifBlank {
-                                source.attr("size")
+                                source.attr("size") + "p"
                             }
                         }
                     }
