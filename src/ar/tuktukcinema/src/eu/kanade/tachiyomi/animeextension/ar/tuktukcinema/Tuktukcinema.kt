@@ -141,9 +141,9 @@ class Tuktukcinema :
             }
         }
 
-        "mixdrop" in server -> {
-            mixDropExtractor.videosFromUrl(url, "Ar", customQuality?.let { "$it " } ?: "")
-        }
+        // "mixdrop" in server -> {
+        //    mixDropExtractor.videosFromUrl(url, "Ar", customQuality?.let { "$it " } ?: "")
+        // }
 
         "dood" in server -> {
             doodExtractor.videosFromUrl(url, customQuality)
@@ -154,10 +154,7 @@ class Tuktukcinema :
         }
 
         "krakenfiles" in server -> {
-            val page = client.newCall(GET(url, headers)).execute().asJsoup()
-            page.select("source").map {
-                Video(it.attr("src"), "Kraken" + customQuality?.let { q -> ": $q" }.orEmpty(), it.attr("src"))
-            }
+            videoExtractor.videosFromUrl(url, server)
         }
 
         "earnvids" in server -> {

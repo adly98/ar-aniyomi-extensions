@@ -8,7 +8,10 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 
 class VideoExtractor(private val client: OkHttpClient) {
-    fun videosFromUrl(url: String): List<Video>{
-        return Video(url, url, url).let(::listOf)
+    fun videosFromUrl(url: String, host: String = ""): List<Video>{
+        val prefix = host.ifBlank {
+            url.toHttpUrl().host.substringBefore('.')
+        }.replaceFirstChar(Char::titlecase)
+        return Video(url, "$prefix: $url", url).let(::listOf)
     }
 }
