@@ -165,7 +165,7 @@ class Tuktukcinema :
             vidBomExtractor.videosFromUrl(url, headers)
         }
 
-        else -> videoExtractor.videosFromUrl(url, quality = customQuality ?: "")
+        else -> videoExtractor.videosFromUrl(url, resolution = customQuality ?: "")
     }
 
     override fun List<Video>.sort(): List<Video> {
