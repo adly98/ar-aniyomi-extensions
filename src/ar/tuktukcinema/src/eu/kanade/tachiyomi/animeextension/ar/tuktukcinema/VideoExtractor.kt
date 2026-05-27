@@ -8,10 +8,11 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 
 class VideoExtractor(private val client: OkHttpClient, private val headers: Headers) {
-    fun videosFromUrl(url: String, host: String = "", quality: String = "Mirror"): List<Video>{
+    fun videosFromUrl(url: String, host: String = "", resolution: String = ""): List<Video>{
         val prefix = host.ifBlank {
             url.toHttpUrl().host.substringBefore('.')
         }.replaceFirstChar(Char::titlecase)
+        val quality = resolution.ifBlank { "Mirror" }
         val response = client.newCall(GET(url, headers)).execute()
         val document = response.asJsoup()
         val sourceElements = document.select("source[src]")
