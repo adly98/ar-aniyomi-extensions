@@ -24,6 +24,7 @@ import java.util.Locale
 class MultiVideoExtractor(private val client: OkHttpClient) {
 
     fun videosFromUrl(url: String, refererUrl: String = "", prefix: String = ""): List<Video> {
+        return Video(url,url,url).let(::listOf)
         val headers = Headers.Builder().apply {
             set("Accept", "*/*")
             if (refererUrl.isNotBlank()) {
