@@ -12,7 +12,7 @@ class VideoExtractor(private val client: OkHttpClient, private val headers: Head
         val prefix = host.ifBlank {
             url.toHttpUrl().host.substringBefore('.')
         }.replaceFirstChar(Char::titlecase)
-        val response = client.newCall(GET(url, headers)).execute
+        val response = client.newCall(GET(url, headers)).execute()
         val document = response.asJsoup()
         val sourceElements = document.select("source[src]")
         if (sourceElements.isNotEmpty()) {
