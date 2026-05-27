@@ -154,7 +154,7 @@ class Tuktukcinema :
         }
 
         "krakenfiles" in server -> {
-            videoExtractor.videosFromUrl(url, server)
+            videoExtractor.videosFromUrl(url, server, customQuality)
         }
 
         "earnvids" in server -> {
@@ -165,7 +165,7 @@ class Tuktukcinema :
             vidBomExtractor.videosFromUrl(url, headers)
         }
 
-        else -> videoExtractor.videosFromUrl(url)
+        else -> videoExtractor.videosFromUrl(url, quality = customQuality)
     }
 
     override fun List<Video>.sort(): List<Video> {
