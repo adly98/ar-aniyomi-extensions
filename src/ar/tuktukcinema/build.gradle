@@ -13,6 +13,5 @@ dependencies {
     implementation(project(':lib:streamwishextractor'))
     implementation(project(':lib:vidbomextractor'))
     implementation(project(':lib:vidlandextractor'))
-    implementation(project(':lib:multivideoextractor'))
     implementation(project(":lib:i18n"))
 }

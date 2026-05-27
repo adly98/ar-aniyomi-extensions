@@ -8,7 +8,6 @@ import aniyomi.lib.doodextractor.DoodExtractor
 import aniyomi.lib.i18n.Intl
 import aniyomi.lib.megamaxmultiserver.MegaMaxMultiServer
 import aniyomi.lib.mixdropextractor.MixDropExtractor
-import aniyomi.lib.multivideoextractor.MultiVideoExtractor
 import aniyomi.lib.streamwishextractor.StreamWishExtractor
 import aniyomi.lib.vidbomextractor.VidBomExtractor
 import aniyomi.lib.vidlandextractor.VidLandExtractor
@@ -126,7 +125,7 @@ class Tuktukcinema :
     private val doodExtractor by lazy { DoodExtractor(client) }
     private val megaMax by lazy { MegaMaxMultiServer(client, headers) }
     private val mixDropExtractor by lazy { MixDropExtractor(client) }
-    private val multiVideoExtractor by lazy { MultiVideoExtractor(client) }
+    private val videoExtractor by lazy { VideoExtractor(client) }
     private val streamWishExtractor by lazy { StreamWishExtractor(client, headers) }
     private val vidBomExtractor by lazy { VidBomExtractor(client) }
     private val vidLandExtractor by lazy { VidLandExtractor(client) }
@@ -169,7 +168,7 @@ class Tuktukcinema :
             vidBomExtractor.videosFromUrl(url, headers)
         }
 
-        else -> multiVideoExtractor.videosFromUrl(url)
+        else -> videoExtractor.videosFromUrl(url)
     }
 
     override fun List<Video>.sort(): List<Video> {
