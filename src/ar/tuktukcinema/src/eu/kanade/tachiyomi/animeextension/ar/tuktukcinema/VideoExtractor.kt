@@ -42,8 +42,8 @@ class VideoExtractor(private val client: OkHttpClient, private val headers: Head
         return Video(url, "$prefix: $url", url).let(::listOf)
     }
 
-    companion object {
-        private val PLAYER_SCRIPT_REGEX = Regex("""(?i)(eval\\(|player|file\\s*[:=]|source\\s*[:=])""")
-        private val VIDEO_URL_REGEX = Regex("""https?://[^\\s\"'<>\\]+?\\.(?:m3u8|mpd|mp4)(?:\\?[^\"'<>\\]*)?""")
-    }
+    // companion object {
+    //    private val PLAYER_SCRIPT_REGEX = Regex("""(?i)(eval\\(|player|file\\s*[:=]|source\\s*[:=])""")
+    //    private val VIDEO_URL_REGEX = Regex("""https?://[^\\s\"'<>\\]+?\\.(?:m3u8|mpd|mp4)(?:\\?[^\"'<>\\]*)?""")
+    // }
 }
