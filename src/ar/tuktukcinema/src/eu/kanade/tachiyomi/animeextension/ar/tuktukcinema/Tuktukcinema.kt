@@ -125,7 +125,7 @@ class Tuktukcinema :
     private val doodExtractor by lazy { DoodExtractor(client) }
     private val megaMax by lazy { MegaMaxMultiServer(client, headers) }
     private val mixDropExtractor by lazy { MixDropExtractor(client) }
-    private val videoExtractor by lazy { VideoExtractor(client) }
+    private val videoExtractor by lazy { VideoExtractor(client, headers) }
     private val streamWishExtractor by lazy { StreamWishExtractor(client, headers) }
     private val vidBomExtractor by lazy { VidBomExtractor(client) }
     private val vidLandExtractor by lazy { VidLandExtractor(client) }
