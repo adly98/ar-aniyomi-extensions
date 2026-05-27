@@ -17,7 +17,7 @@ class VideoExtractor(private val client: OkHttpClient, private val headers: Head
         val sourceElements = document.select("source[src]")
         if (sourceElements.isNotEmpty()) {
             val videoHeaders = headers.newBuilder().add("Referer", url).build()
-            sourceElements.map {
+            return sourceElements.map {
                 val src = it.attr("src")
                 Video(src, prefix, src, headers = videoHeaders)
             }
