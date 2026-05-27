@@ -8,7 +8,7 @@ import aniyomi.lib.doodextractor.DoodExtractor
 import aniyomi.lib.i18n.Intl
 import aniyomi.lib.megamaxmultiserver.MegaMaxMultiServer
 import aniyomi.lib.mixdropextractor.MixDropExtractor
-import aniyomi.lib.multiVideoExtractor.MultiVideoExtractor
+import aniyomi.lib.multivideoextractor.MultiVideoExtractor
 import aniyomi.lib.streamwishextractor.StreamWishExtractor
 import aniyomi.lib.vidbomextractor.VidBomExtractor
 import aniyomi.lib.vidlandextractor.VidLandExtractor
