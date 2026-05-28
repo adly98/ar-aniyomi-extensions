@@ -25,7 +25,7 @@ class VideoExtractor(private val client: OkHttpClient, private val headers: Head
             }
         }
 
-        ==================== Script Search ===================
+        // ==================== Script Search ===================
         val scriptElement = document.select("script").firstOrNull { PLAYER_SCRIPT_REGEX.containsMatchIn(it.data()) }
             ?: document.selectFirst("script")
             ?: return emptyList()
