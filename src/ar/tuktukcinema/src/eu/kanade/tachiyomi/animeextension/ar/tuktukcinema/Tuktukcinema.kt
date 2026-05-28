@@ -158,7 +158,8 @@ class Tuktukcinema :
         }
 
         "earnvids" in server -> {
-            vidLandExtractor.videosFromUrl(url)
+            videoExtractor.videosFromUrl(url, server, customQuality ?: "")
+            // vidLandExtractor.videosFromUrl(url)
         }
 
         "Vidbom" in server || "Vidshare" in server || "Govid" in server -> {
