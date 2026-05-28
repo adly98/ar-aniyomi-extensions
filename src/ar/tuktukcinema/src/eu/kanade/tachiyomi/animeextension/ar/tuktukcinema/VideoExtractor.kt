@@ -1,6 +1,6 @@
 package eu.kanade.tachiyomi.animeextension.ar.tuktukcinema
 
-import aniyomi.lib.unpacker.Unpacker
+import aniyomi.lib.jsunpacker.JsUnpacker
 import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.util.asJsoup
@@ -26,15 +26,13 @@ class VideoExtractor(private val client: OkHttpClient, private val headers: Head
         }
         // return Video(url, "Other $prefix: $url", url).let(::listOf)
         // ==================== Script Search ===================
-        val scriptElement = document.selectFirst("script:containsData(eval)")
+        val playerData = document.selectFirst("script:containsData(eval)")?.data()
+            ?.let(JsUnpacker::unpackAndCombine)
             ?: return Video(url, "Not Found $prefix: $url", url).let(::listOf)
         
-        val playerData = scriptElement.data()
-        val unpacked = Unpacker.unpack(playerData).takeIf { it.isNotBlank() } ?: playerData
+        return Video(url, playerData, url).let(::listOf)
         
-        return Video(url, unpacked, url).let(::listOf)
-        
-        val videoUrl = VIDEO_URL_REGEX.find(unpacked)
+        val videoUrl = VIDEO_URL_REGEX.find(playerData)
             ?.value
             ?.replace("\\/", "/")
             ?: return emptyList()
