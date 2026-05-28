@@ -30,8 +30,6 @@ class VideoExtractor(private val client: OkHttpClient, private val headers: Head
             ?.let(JsUnpacker::unpackAndCombine)
             ?: return Video(url, "Not Found $prefix: $url", url).let(::listOf)
         
-        return Video(url, playerData, url).let(::listOf)
-        
         val videoUrl = VIDEO_URL_REGEX.find(playerData)
             ?.value
             ?.replace("\\/", "/")
