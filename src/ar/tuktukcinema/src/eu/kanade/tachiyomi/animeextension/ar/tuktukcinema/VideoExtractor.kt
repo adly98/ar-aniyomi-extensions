@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.animeextension.ar.tuktukcinema
 
 import aniyomi.lib.jsunpacker.JsUnpacker
+import aniyomi.lib.playlistutils.PlaylistUtils
 import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.util.asJsoup
@@ -9,6 +10,9 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 
 class VideoExtractor(private val client: OkHttpClient, private val headers: Headers) {
+
+    private val playlistUtils by lazy { PlaylistUtils(client) }
+
     fun videosFromUrl(url: String, host: String = "", resolution: String = ""): List<Video>{
         val prefix = host.ifBlank {
             url.toHttpUrl().host.substringBefore('.')
@@ -30,12 +34,9 @@ class VideoExtractor(private val client: OkHttpClient, private val headers: Head
             ?.let(JsUnpacker::unpackAndCombine)
             ?: return Video(url, "Not Found $prefix: $url", url).let(::listOf)
         
-        val videoUrl = VIDEO_URL_REGEX.find(playerData)
-            ?.value
-            ?.replace("\\/", "/")
-            ?: return emptyList()
-        
-        return Video(url, "$prefix: $videoUrl", url).let(::listOf)
+        return VIDEO_URL_REGEX.find(playerData)?.value?.replace("\\/", "/")?.let {
+                playlistUtils.extractFromHls(it, url, videoNameGen = { quality -> "$prefix: $quality" })
+            } ?: return emptyList()
     }
 
     companion object {

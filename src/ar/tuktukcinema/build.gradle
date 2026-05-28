@@ -15,4 +15,5 @@ dependencies {
     implementation(project(':lib:vidlandextractor'))
     implementation(project(":lib:i18n"))
     implementation(project(":lib:unpacker"))
+    implementation(project(":lib:playlistutils"))
 }
