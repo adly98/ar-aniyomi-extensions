@@ -24,14 +24,16 @@ class VideoExtractor(private val client: OkHttpClient, private val headers: Head
                 Video(src, "$prefix: $quality", src, headers = videoHeaders)
             }
         }
-        return Video(url, "Other $prefix: $url", url).let(::listOf)
+        // return Video(url, "Other $prefix: $url", url).let(::listOf)
         // ==================== Script Search ===================
-        val scriptElement = document.select("script").firstOrNull { PLAYER_SCRIPT_REGEX.containsMatchIn(it.data()) }
+        val scriptElement = document.selectFirst("script:containsData(eval)")
             ?: return Video(url, "Not Found $prefix: $url", url).let(::listOf)
         
         val playerData = scriptElement.data()
         val unpacked = Unpacker.unpack(playerData).takeIf { it.isNotBlank() } ?: playerData
-
+        
+        return Video(url, "Found $prefix: $url", url).let(::listOf)
+        
         val videoUrl = VIDEO_URL_REGEX.find(unpacked)
             ?.value
             ?.replace("\\/", "/")
