@@ -39,7 +39,7 @@ class VideoExtractor(private val client: OkHttpClient, private val headers: Head
             ?.replace("\\/", "/")
             ?: return emptyList()
         
-        return Video(url, "$prefix: $url", url).let(::listOf)
+        return Video(url, "$prefix: $videoUrl", url).let(::listOf)
     }
 
     companion object {
