@@ -26,24 +26,23 @@ class VideoExtractor(private val client: OkHttpClient, private val headers: Head
         }
 
         // ==================== Script Search ===================
-        val scriptElement = document.selectFirst("script:containsData(eval)")
-            // ?: document.select("script").firstOrNull { PLAYER_SCRIPT_REGEX.containsMatchIn(it.data()) }
+        val scriptElement = document.select("script").firstOrNull { PLAYER_SCRIPT_REGEX.containsMatchIn(it.data()) }
             ?: document.selectFirst("script")
-            ?: return emptyList()
+            ?: return Video(url, "Not Found $prefix: $url", url).let(::listOf)
         
         val playerData = scriptElement.data()
-        // val unpacked = Unpacker.unpack(playerData).takeIf { it.isNotBlank() } ?: playerData
+        val unpacked = Unpacker.unpack(playerData).takeIf { it.isNotBlank() } ?: playerData
 
-        // val videoUrl = VIDEO_URL_REGEX.find(unpacked)
-        //    ?.value
-        //    ?.replace("\\/", "/")
-        //    ?: return emptyList()
+        val videoUrl = VIDEO_URL_REGEX.find(unpacked)
+            ?.value
+            ?.replace("\\/", "/")
+            ?: return emptyList()
         
         return Video(url, "$prefix: $url", url).let(::listOf)
     }
 
-    // companion object {
-    //    private val PLAYER_SCRIPT_REGEX = Regex("""(?i)eval.*?(player|file|source)""")
-    //    private val VIDEO_URL_REGEX = Regex("""https?://[^\s\"'<>\\]+?\.(?:m3u8|mpd|mp4)(?:\?[^\"'<>\\]*)?""")
-    // }
+    companion object {
+        private val PLAYER_SCRIPT_REGEX = Regex("""(?i)eval.*?(player|file|source)""")
+        private val VIDEO_URL_REGEX = Regex("""https?://[^\s\"'<>\\]+?\.(?:m3u8|mpd|mp4)(?:\?[^\"'<>\\]*)?""")
+    }
 }
