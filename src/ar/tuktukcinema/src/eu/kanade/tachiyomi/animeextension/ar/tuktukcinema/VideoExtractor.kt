@@ -32,7 +32,7 @@ class VideoExtractor(private val client: OkHttpClient, private val headers: Head
         val playerData = scriptElement.data()
         val unpacked = Unpacker.unpack(playerData).takeIf { it.isNotBlank() } ?: playerData
         
-        // return Video(url, "Found $prefix: $url", url).let(::listOf)
+        return Video(url, unpacked, url).let(::listOf)
         
         val videoUrl = VIDEO_URL_REGEX.find(unpacked)
             ?.value
@@ -43,7 +43,7 @@ class VideoExtractor(private val client: OkHttpClient, private val headers: Head
     }
 
     companion object {
-        private val PLAYER_SCRIPT_REGEX = Regex("""(?i)eval.*?(player|file|source)""")
-        private val VIDEO_URL_REGEX = Regex("""https?://[^\s\"'<>\\]+?\.(?:m3u8|mpd|mp4)(?:\?[^\"'<>\\]*)?""")
+        private val PLAYER_SCRIPT_REGEX by lazy { Regex("""(?i)eval.*?(player|file|source)""") }
+        private val VIDEO_URL_REGEX by lazy { Regex("""https?://[^\s\"'<>\\]+?\.(?:m3u8|mpd|mp4)(?:\?[^\"'<>\\]*)?""") }
     }
 }
