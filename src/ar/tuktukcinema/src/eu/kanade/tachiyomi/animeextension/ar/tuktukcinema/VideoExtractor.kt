@@ -32,7 +32,7 @@ class VideoExtractor(private val client: OkHttpClient, private val headers: Head
         val playerData = scriptElement.data()
         val unpacked = Unpacker.unpack(playerData).takeIf { it.isNotBlank() } ?: playerData
         
-        return Video(url, "Found $prefix: $url", url).let(::listOf)
+        // return Video(url, "Found $prefix: $url", url).let(::listOf)
         
         val videoUrl = VIDEO_URL_REGEX.find(unpacked)
             ?.value
