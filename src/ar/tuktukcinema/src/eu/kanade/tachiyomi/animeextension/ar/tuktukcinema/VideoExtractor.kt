@@ -32,10 +32,14 @@ class VideoExtractor(private val client: OkHttpClient, private val headers: Head
         // ==================== Script Search ===================
         val playerData = document.selectFirst("script:containsData(eval)")?.data()
             ?.let(JsUnpacker::unpackAndCombine)
-            ?: return Video(url, "Not Found $prefix: $url", url).let(::listOf)
+            ?: response.body.string()
         
         return VIDEO_URL_REGEX.find(playerData)?.value?.replace("\\/", "/")?.let {
-                playlistUtils.extractFromHls(it, url, videoNameGen = { quality -> "$prefix: $quality" })
+                if("mp4" in it) {
+                    Video(it, "$prefix: $quality", it)
+                } else {
+                    playlistUtils.extractFromHls(it, url, videoNameGen = { quality -> "$prefix: $quality" })
+                }
             } ?: return emptyList()
     }
 
