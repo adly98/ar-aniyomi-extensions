@@ -36,7 +36,7 @@ class VideoExtractor(private val client: OkHttpClient, private val headers: Head
         
         return VIDEO_URL_REGEX.find(playerData)?.value?.replace("\\/", "/")?.let {
                 if("mp4" in it) {
-                    Video(it, "$prefix: $quality", it)
+                    Video(it, "$prefix: $quality", it).let(::listOf)
                 } else {
                     playlistUtils.extractFromHls(it, url, videoNameGen = { quality -> "$prefix: $quality" })
                 }
