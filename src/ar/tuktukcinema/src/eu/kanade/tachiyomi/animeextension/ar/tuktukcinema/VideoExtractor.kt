@@ -20,27 +20,29 @@ class VideoExtractor(private val client: OkHttpClient, private val headers: Head
         val quality = resolution.ifBlank { "Mirror" }
         val response = client.newCall(GET(url, headers)).execute()
         val document = response.asJsoup()
-        val sourceElements = document.select("source[src]")
-        if (sourceElements.isNotEmpty()) {
-            val videoHeaders = headers.newBuilder().add("Referer", url).build()
-            return sourceElements.map {
-                val src = it.attr("src")
-                Video(src, "$prefix: $quality", src, headers = videoHeaders)
+
+        val videoHeaders = headers.newBuilder().add("Referer", url).build()
+        var playerData = response.body.string()
+        
+        // First, try to find all matches in the initial HTML
+        var videoMatches = VIDEO_URL_REGEX.findAll(playerData).toList()
+        
+        // If no matches found, try unpacking script with eval
+        if (videoMatches.isEmpty()) {
+            playerData = document.selectFirst("script:containsData(eval)")?.data()
+                ?.let(JsUnpacker::unpackAndCombine)
+                ?: return emptyList()
+            videoMatches = VIDEO_URL_REGEX.findAll(playerData).toList()
+        }
+        
+        return videoMatches.flatMap { match ->
+            val videoUrl = match.value.replace("\\/", "/")
+            if("mp4" in videoUrl) {
+                Video(videoUrl, "$prefix: $quality", videoUrl, headers = videoHeaders).let(::listOf)
+            } else {
+                playlistUtils.extractFromHls(videoUrl, url, videoNameGen = { quality -> "$prefix: $quality" })
             }
         }
-        // return Video(url, "Other $prefix: $url", url).let(::listOf)
-        // ==================== Script Search ===================
-        val playerData = document.selectFirst("script:containsData(eval)")?.data()
-            ?.let(JsUnpacker::unpackAndCombine)
-            ?: response.body.string()
-        
-        return VIDEO_URL_REGEX.find(playerData)?.value?.replace("\\/", "/")?.let {
-                if("mp4" in it) {
-                    Video(it, "$prefix: $quality", it).let(::listOf)
-                } else {
-                    playlistUtils.extractFromHls(it, url, videoNameGen = { quality -> "$prefix: $quality" })
-                }
-            } ?: return emptyList()
     }
 
     companion object {
