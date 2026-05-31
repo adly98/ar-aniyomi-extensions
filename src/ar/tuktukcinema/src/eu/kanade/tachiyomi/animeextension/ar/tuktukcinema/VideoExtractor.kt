@@ -45,8 +45,8 @@ class VideoExtractor(private val client: OkHttpClient, private val headers: Head
         
         return videoMatches.flatMap { match ->
             if (videoUrl.contains("mp4")) {
-            if("mp4" in videoUrl) {
                 listOf(Video(videoUrl, "$prefix: $quality", videoUrl, headers = videoHeaders))
+            } else {
                 playlistUtils.extractFromHls(videoUrl, url, videoNameGen = { streamQuality -> "$prefix: $streamQuality" })
             }
         }
