@@ -11,7 +11,7 @@ class DoodExtractor(private val client: OkHttpClient) {
 
     fun videoFromUrl(
         url: String,
-        prefix: String? = null,
+        quality: String? = null,
         redirect: Boolean = true,
         externalSubs: List<Track> = emptyList(),
     ): Video? {
@@ -30,10 +30,7 @@ class DoodExtractor(private val client: OkHttpClient) {
                 ?.getOrNull(0)
 
             // Determinar la calidad a usar
-            val newQuality = listOfNotNull(
-                prefix,
-                "Doodstream " + (extractedQuality ?: (if (redirect) "mirror" else "")),
-            ).joinToString(" - ")
+            val newQuality = "Doodstream: " + (extractedQuality ?: quality ?: (if (redirect) "mirror" else ""))
 
             // Obtener el hash MD5
             val md5 = doodHost + (Regex("/pass_md5/[^']*").find(content)?.value ?: return null)
