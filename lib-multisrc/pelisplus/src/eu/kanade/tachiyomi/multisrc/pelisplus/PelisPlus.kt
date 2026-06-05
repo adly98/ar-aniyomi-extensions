@@ -12,7 +12,7 @@ import aniyomi.lib.streamlareextractor.StreamlareExtractor
 import aniyomi.lib.streamsilkextractor.StreamSilkExtractor
 import aniyomi.lib.streamtapeextractor.StreamTapeExtractor
 import aniyomi.lib.streamwishextractor.StreamWishExtractor
-import aniyomi.lib.universalextractor.UniversalExtractor
+import aniyomi.lib.universalextractor.WebViewResolver
 import aniyomi.lib.upstreamextractor.UpstreamExtractor
 import aniyomi.lib.uqloadextractor.UqloadExtractor
 import aniyomi.lib.vidguardextractor.VidGuardExtractor
@@ -61,10 +61,10 @@ abstract class PelisPlus :
     private val vidHideExtractor by lazy { VidHideExtractor(client, headers) }
     private val streamSilkExtractor by lazy { StreamSilkExtractor(client) }
     private val vidGuardExtractor by lazy { VidGuardExtractor(client) }
-    private val universalExtractor by lazy { UniversalExtractor(client) }
+    private val universalExtractor by lazy { WebViewResolver(client) }
 
     /**
-     * Don't run this in parallel since [UniversalExtractor] uses Webview doesn't support multi-thread.
+     * Don't run this in parallel since [WebViewResolver] uses Webview doesn't support multi-thread.
      */
     suspend fun serverVideoResolver(url: String, prefix: String = "", serverName: String? = ""): List<Video> {
         val source = serverName?.ifEmpty { url } ?: url
