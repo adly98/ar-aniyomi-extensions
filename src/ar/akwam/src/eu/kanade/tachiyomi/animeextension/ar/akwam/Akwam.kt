@@ -24,7 +24,9 @@ import okhttp3.Response
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
-class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
+class Akwam :
+    ParsedAnimeHttpSource(),
+    ConfigurableAnimeSource {
 
     override val name = "أكوام"
 
@@ -45,7 +47,7 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
 
     override fun popularAnimeFromElement(element: Element): SAnime = SAnime.create().apply {
         title = element.select("picture img").attr("alt")
-        thumbnail_url = element.select("picture img").attr("data-src").replace("178x260", "360x480")
+        thumbnail_url = element.select("picture img").attr("data-src").replace("178x260", "500x750")
         setUrlWithoutDomain(element.attr("href"))
     }
 
@@ -58,11 +60,11 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
     override fun episodeListParse(response: Response): List<SEpisode> {
         val episodes = mutableListOf<SEpisode>()
         fun addEpisodes(document: Document) {
-            if (document.select(episodeListSelector()).isNullOrEmpty()) {
+            if (document.select(episodeListSelector()).isEmpty()) {
                 // add movie
-                document.select("input#reportInputUrl").map { episodes.add(episodeFromElement(it)) }
+                document.select("input#reportInputUrl").forEach { episodes.add(episodeFromElement(it)) }
             } else {
-                document.select(episodeListSelector()).map { episodes.add(episodesFromElement(it)) }
+                document.select(episodeListSelector()).forEach { episodes.add(episodesFromElement(it)) }
             }
         }
         addEpisodes(response.asJsoup())
@@ -80,9 +82,7 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
         episode_number = element.text().getEpisodeNumber()
     }
 
-    private fun String.getEpisodeNumber(): Float {
-        return this.substringBefore(":").filter { it.isDigit() }.toFloatOrNull() ?: 1F
-    }
+    private fun String.getEpisodeNumber(): Float = this.substringBefore(":").filter { it.isDigit() }.toFloatOrNull() ?: 1F
 
     // ============================ Video Links =============================
 
@@ -100,10 +100,10 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
     override fun videoListSelector() = "source"
 
     override fun videoFromElement(element: Element): Video = Video(
-            element.attr("src").replace("https", "http"),
-            element.attr("size") + "p",
-            element.attr("src").replace("https", "http"),
-        )
+        element.attr("src").replace("https", "http"),
+        element.attr("size") + "p",
+        element.attr("src").replace("https", "http"),
+    )
 
     override fun List<Video>.sort(): List<Video> {
         val quality = preferences.quality
@@ -148,7 +148,7 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
                     addQueryParameter("quality", searchQuality.toUriPart())
                 }
             } else {
-                addPathSegment(typeFilter.toUriPart() ?: "movies")
+                addPathSegment(typeFilter.toUriPart())
                 if (sectionFilter.state != 0) {
                     addQueryParameter("section", sectionFilter.toUriPart())
                 }
@@ -171,15 +171,14 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
             document.select("div.font-size-16.d-flex.align-items-center.mt-3 a.badge, span.badge-info, span:contains(جودة الفيلم), span:contains(انتاج)")
                 .joinToString(", ") { it.text().replace("جودة الفيلم : ", "") }
         author = document.select("span:contains(انتاج)").text().replace("انتاج : ", "")
-        description = document.select("div.widget:contains(قصة )").text()
+        description = document.select("div.widget:contains(قصة) p").last()?.text()
         status = SAnime.COMPLETED
     }
 
     // =============================== Latest ===============================
     override fun latestUpdatesNextPageSelector(): String = throw UnsupportedOperationException()
 
-    override fun latestUpdatesFromElement(element: Element): SAnime =
-        throw UnsupportedOperationException()
+    override fun latestUpdatesFromElement(element: Element): SAnime = throw UnsupportedOperationException()
 
     override fun latestUpdatesRequest(page: Int): Request = throw UnsupportedOperationException()
 
@@ -201,7 +200,7 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
         RatingFilter(),
     )
 
-    private class SearchSection() :
+    private class SearchSection :
         PairFilter(
             "بحث عن",
             arrayOf(
@@ -209,10 +208,10 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
                 Pair("movie", "افلام"),
                 Pair("series", "مسلسلات"),
                 Pair("show", "تلفزيون"),
-            )
+            ),
         )
 
-    private class SearchRating() :
+    private class SearchRating :
         PairFilter(
             "التقيم",
             arrayOf(
@@ -226,10 +225,10 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
                 Pair("7", "7+"),
                 Pair("8", "8+"),
                 Pair("9", "9+"),
-            )
+            ),
         )
 
-    private class SearchFormat() :
+    private class SearchFormat :
         PairFilter(
             "الجودة",
             arrayOf(
@@ -248,10 +247,10 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
                 Pair("BDRIP", "BDRIP"),
                 Pair("HDRIP", "HDRIP"),
                 Pair("HC+HDRIP", "HC HDRIP"),
-            )
+            ),
         )
 
-    private class SearchQuality() :
+    private class SearchQuality :
         PairFilter(
             "الدقة",
             arrayOf(
@@ -263,19 +262,19 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
                 Pair("1080p", "1080p"),
                 Pair("3D", "3D"),
                 Pair("4K", "4K"),
-            )
+            ),
         )
 
-    private class TypeFilter() :
+    private class TypeFilter :
         PairFilter(
             "النوع",
             arrayOf(
                 Pair("movies", "افلام"),
                 Pair("series", "مسلسلات"),
-            )
+            ),
         )
 
-    private class SectionFilter() :
+    private class SectionFilter :
         PairFilter(
             "القسم",
             arrayOf(
@@ -285,10 +284,10 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
                 Pair("31", "هندي"),
                 Pair("32", "تركي"),
                 Pair("33", "اسيوي"),
-            )
+            ),
         )
 
-    private class CategoryFilter() :
+    private class CategoryFilter :
         PairFilter(
             "التصنيف",
             arrayOf(
@@ -318,10 +317,10 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
                 Pair("21", "جريمة"),
                 Pair("19", "مغامرة"),
                 Pair("91", "غربي"),
-            )
+            ),
         )
 
-    private class RatingFilter() :
+    private class RatingFilter :
         PairFilter(
             "التقييم",
             arrayOf(
@@ -335,11 +334,10 @@ class Akwam : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
                 Pair("7", "7+"),
                 Pair("8", "8+"),
                 Pair("9", "9+"),
-            )
+            ),
         )
 
-    open class PairFilter(displayName: String, private val vals: Array<Pair<String, String>>) :
-        AnimeFilter.Select<String>(displayName, vals.map { it.second }.toTypedArray()) {
+    open class PairFilter(displayName: String, private val vals: Array<Pair<String, String>>) : AnimeFilter.Select<String>(displayName, vals.map { it.second }.toTypedArray()) {
         fun toUriPart() = vals[state].first
     }
 
