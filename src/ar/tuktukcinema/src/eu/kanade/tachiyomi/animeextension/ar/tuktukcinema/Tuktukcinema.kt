@@ -9,8 +9,8 @@ import aniyomi.lib.i18n.Intl
 import aniyomi.lib.megamaxmultiserver.MegaMaxMultiServer
 import aniyomi.lib.mixdropextractor.MixDropExtractor
 import aniyomi.lib.streamwishextractor.StreamWishExtractor
-import aniyomi.lib.vidbomextractor.VidBomExtractor
-import aniyomi.lib.vidlandextractor.VidLandExtractor
+import aniyomi.lib.universalextractor.UniversalExtractor
+import aniyomi.lib.universalextractor.WebViewResolver
 import eu.kanade.tachiyomi.animesource.ConfigurableAnimeSource
 import eu.kanade.tachiyomi.animesource.model.AnimeFilter
 import eu.kanade.tachiyomi.animesource.model.AnimeFilterList
@@ -79,7 +79,7 @@ class Tuktukcinema :
         val document = response.asJsoup()
         val url = response.request.url.toString()
         val seasonsDOM = document.select(episodeListSelector())
-        return if (seasonsDOM.isNullOrEmpty()) {
+        return if (seasonsDOM.isEmpty()) {
             SEpisode.create().apply {
                 setUrlWithoutDomain(url)
                 name = "مشاهدة"
@@ -116,33 +116,43 @@ class Tuktukcinema :
 
     override fun videoListParse(response: Response): List<Video> {
         val document = response.asJsoup()
-        return document.select(videoListSelector()).parallelCatchingFlatMapBlocking {
-            val url = it.attr("data-link").substringBefore("0REL0Y").reversed()
-            extractVideos(String(Base64.decode(url, Base64.DEFAULT), Charsets.UTF_8), it.text())
+        val providerList = document.select(videoListSelector()).flatMap { selector ->
+             val url = selector.attr("data-link").substringBefore("0REL0Y").reversed().let {
+                String(Base64.decode(it, Base64.DEFAULT), Charsets.UTF_8)
+            }
+            if("iframe" in url) {
+                megaMax.extractUrls(url)
+            } else {
+                val text = selector.text().lowercase()
+                MegaMaxMultiServer.Provider(url, text, "", "").let(::listOf)
+            }
         }
+        val videoList = providerList.parallelCatchingFlatMapBlocking {
+            extractVideos(it.url, it.name, it.quality)
+        }
+        if(videoList.isEmpty()) {
+            return providerList.flatMap {
+                webViewResolver.videosFromUrl(it.url, headers, it.quality)
+            }
+        }
+        return videoList
     }
 
     private val doodExtractor by lazy { DoodExtractor(client) }
     private val megaMax by lazy { MegaMaxMultiServer(client, headers) }
     private val mixDropExtractor by lazy { MixDropExtractor(client) }
     private val streamWishExtractor by lazy { StreamWishExtractor(client, headers) }
-    private val vidBomExtractor by lazy { VidBomExtractor(client) }
-    private val vidLandExtractor by lazy { VidLandExtractor(client) }
-
+    private val universalExtractor by lazy { UniversalExtractor(client, headers) }
+    private val webViewResolver by lazy { WebViewResolver(client) }
     private fun extractVideos(
         url: String,
         server: String,
         customQuality: String? = null,
     ): List<Video> = when {
-        "iframe" in url -> {
-            megaMax.extractUrls(url).parallelCatchingFlatMapBlocking {
-                extractVideos(it.url, it.name, it.quality)
-            }
-        }
 
-        "mixdrop" in server -> {
-            mixDropExtractor.videosFromUrl(url, "Ar", customQuality?.let { "$it " } ?: "")
-        }
+        // "mixdrop" in server -> {
+        //    mixDropExtractor.videosFromUrl(url, "Ar", customQuality?.let { "$it " } ?: "")
+        // }
 
         "dood" in server -> {
             doodExtractor.videosFromUrl(url, customQuality)
@@ -152,22 +162,11 @@ class Tuktukcinema :
             streamWishExtractor.videosFromUrl(url, server.replaceFirstChar(Char::titlecase))
         }
 
-        "krakenfiles" in server -> {
-            val page = client.newCall(GET(url, headers)).execute().asJsoup()
-            page.select("source").map {
-                Video(it.attr("src"), "Kraken" + customQuality?.let { q -> ": $q" }.orEmpty(), it.attr("src"))
-            }
-        }
+//        "earnvids" in server || "krakenfiles" in server || "mp4" in server -> {
+//            universalExtractor.videosFromUrl(url, server, customQuality)
+//        }
 
-        "earnvids" in server -> {
-            vidLandExtractor.videosFromUrl(url)
-        }
-
-        "Vidbom" in server || "Vidshare" in server || "Govid" in server -> {
-            vidBomExtractor.videosFromUrl(url, headers)
-        }
-
-        else -> emptyList()
+        else -> universalExtractor.videosFromUrl(url, server, customQuality)
     }
 
     override fun List<Video>.sort(): List<Video> {
