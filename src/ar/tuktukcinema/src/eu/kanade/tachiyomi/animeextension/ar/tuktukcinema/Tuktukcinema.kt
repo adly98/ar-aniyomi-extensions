@@ -117,10 +117,10 @@ class Tuktukcinema :
     override fun videoListParse(response: Response): List<Video> {
         val document = response.asJsoup()
         val providerList = document.select(videoListSelector()).flatMap { selector ->
-             val url = selector.attr("data-link").substringBefore("0REL0Y").reversed().let {
+            val url = selector.attr("data-link").substringBefore("0REL0Y").reversed().let {
                 String(Base64.decode(it, Base64.DEFAULT), Charsets.UTF_8)
             }
-            if("iframe" in url) {
+            if ("iframe" in url) {
                 megaMax.extractUrls(url)
             } else {
                 val text = selector.text().lowercase()
@@ -130,7 +130,7 @@ class Tuktukcinema :
         val videoList = providerList.parallelCatchingFlatMapBlocking {
             extractVideos(it.url, it.name, it.quality)
         }
-        if(videoList.isEmpty()) {
+        if (videoList.isEmpty()) {
             return providerList.flatMap {
                 webViewResolver.videosFromUrl(it.url, headers, it.quality)
             }
@@ -149,7 +149,6 @@ class Tuktukcinema :
         server: String,
         customQuality: String? = null,
     ): List<Video> = when {
-
         // "mixdrop" in server -> {
         //    mixDropExtractor.videosFromUrl(url, "Ar", customQuality?.let { "$it " } ?: "")
         // }
