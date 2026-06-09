@@ -9,6 +9,8 @@ import java.net.URI
 
 class DoodExtractor(private val client: OkHttpClient) {
 
+    fun isSupported(url: String) = DOOD_STREAM_REGEX.containsMatchIn(url)
+
     fun videoFromUrl(
         url: String,
         quality: String? = null,
@@ -79,4 +81,8 @@ class DoodExtractor(private val client: OkHttpClient) {
         add("User-Agent", "Aniyomi")
         add("Referer", "https://$host/")
     }.build()
+
+    companion object {
+        private val DOOD_STREAM_REGEX by lazy { Regex("""(?://|\.)((?:do*0*o*0*ds?(?:tream|ter|cdn)?|ds[2v](?:play|video)|(?:my)?v*id(?:pla?y|e0)|all3do|d-s|do(?:7go|ply)|playmogo)\.(?:[cit]om?|watch|s[ho]|cx|l[ai]|w[sf]|pm|re|yt|stream|pro|work|net))/(?:d|e)/([0-9a-zA-Z]+)""") }
+    }
 }

@@ -270,9 +270,7 @@ class MegaUpExtractor(
 
     private fun extractHoster(host: String): String = hosterRegex.find(host)?.groupValues?.getOrNull(1) ?: host
 
-    private fun String.proper(): String = this.replaceFirstChar {
-        if (it.isLowerCase()) it.titlecase() else it.toString()
-    }
+    private fun String.proper(): String = this.replaceFirstChar(Char::titlecase)
 
     @Serializable
     private data class InternalEncryptedResponse(val result: String)

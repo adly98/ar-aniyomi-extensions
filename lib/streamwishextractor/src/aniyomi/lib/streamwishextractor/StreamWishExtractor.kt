@@ -2,7 +2,6 @@ package aniyomi.lib.streamwishextractor
 
 import aniyomi.lib.jsunpacker.JsUnpacker
 import aniyomi.lib.playlistutils.PlaylistUtils
-import aniyomi.lib.synchrony.Deobfuscator
 import eu.kanade.tachiyomi.animesource.model.Track
 import eu.kanade.tachiyomi.animesource.model.Video
 import eu.kanade.tachiyomi.network.GET
@@ -21,34 +20,19 @@ class StreamWishExtractor(private val client: OkHttpClient, private val headers:
         ignoreUnknownKeys = true
     }
 
-    private val dmcaServersRegex = """dmca\s*=\s*\[(.*?)]""".toRegex(RegexOption.DOT_MATCHES_ALL)
-    private val mainServersRegex = """main\s*=\s*\[(.*?)]""".toRegex(RegexOption.DOT_MATCHES_ALL)
-    private val rulesServersRegex = """rules\s*=\s*\[(.*?)]""".toRegex(RegexOption.DOT_MATCHES_ALL)
-
+    fun isSupported(url: String) = STREAM_WISH_REGEX.containsMatchIn(url)
     fun videosFromUrl(url: String, prefix: String) = videosFromUrl(url) { "$prefix - $it" }
 
-    fun videosFromUrl(url: String, videoNameGen: (String) -> String = { quality -> "StreamWish - $quality" }): List<Video> {
+    fun videosFromUrl(url: String, videoNameGen: (String) -> String = { quality -> "StreamWish: $quality" }): List<Video> {
         val embedUrl = getEmbedUrl(url).toHttpUrl()
         var doc = client.newCall(GET(embedUrl, headers)).execute().asJsoup()
 
         val scriptElement = doc.selectFirst("body > script[src*=/main.js]")
         if (scriptElement != null) {
-            val scriptUrl = scriptElement.absUrl("src")
-            val scriptContent = client.newCall(GET(scriptUrl, headers)).execute().body.string()
-
-            val deobfuscatedScript = runCatching { Deobfuscator.deobfuscateScript(scriptContent) }.getOrNull()
-                ?: return emptyList()
-
-            val dmcaServers = extractServerList(dmcaServersRegex, deobfuscatedScript)
-
-            val mainServers = extractServerList(mainServersRegex, deobfuscatedScript)
-
-            val rulesServers = extractServerList(rulesServersRegex, deobfuscatedScript)
-
-            val destination = if (embedUrl.host in rulesServers) {
-                mainServers.randomOrNull()
+            val destination = if (embedUrl.host in RULES_SERVERS) {
+                MAIN_SERVERS.randomOrNull()
             } else {
-                dmcaServers.randomOrNull()
+                DMCA_SERVERS.randomOrNull()
             } ?: return emptyList()
 
             val redirectedUrl = embedUrl.newBuilder()
@@ -82,12 +66,6 @@ class StreamWishExtractor(private val client: OkHttpClient, private val headers:
         )
     }
 
-    private fun extractServerList(regex: Regex, script: String): List<String> = regex.find(script)?.groupValues?.get(1)
-        ?.split(",")
-        ?.map { it.trim().removeSurrounding("\"").removeSurrounding("'") }
-        ?.filter { it.isNotEmpty() }
-        ?: emptyList()
-
     private fun getEmbedUrl(url: String): String = if (url.contains("/f/")) {
         val videoId = url.substringAfter("/f/")
         "https://streamwish.com/$videoId"
@@ -115,6 +93,10 @@ class StreamWishExtractor(private val client: OkHttpClient, private val headers:
     private data class TrackDto(val file: String, val kind: String, val label: String? = null)
 
     companion object {
+        private val DMCA_SERVERS = arrayOf("hgplaycdn.com", "hglamioz.com", "niramirus.com", "playnixes.com", "medixiru.com")
+        private val MAIN_SERVERS = arrayOf("hanerix.com", "audinifer.com", "vibuxer.com", "masukestin.com")
+        private val RULES_SERVERS = arrayOf("dhcplay.com", "hglink.to", "hgcloud.to")
+        private val STREAM_WISH_REGEX by lazy { Regex("""(?://|\.)((?:(?:stream|flas|obey|sfast|str|embed|[mads]|cdn|asn|player|hls)?wish(?:embed|fast|only|srv)?|ajmidyad|atabkhha|atabknha|atabknhk|atabknhs|abkrzkr|abkrzkz|vidmoviesb|kharabnahs|hayaatieadhab|cilootv|tuktukcinema|doodporn|ankrzkz|volvovideo|strmwis|ankrznm|yadmalik|khadhnayad|hailindihg|eghjrutf|eghzrutw|playembed|egsyxurh|egtpgrvh|uqloads|javsw|cinemathek|trgsfjll|fsdcmo|guxhag|anime4low|mohahhda|ma2d|dancima|swhoi|gsfqzmqu|jodwish|swdyu|katomen|iplayerhls|hlsflast|4yftwvrdz7|ghbrisk|eb8gfmjn71|cybervynx|edbrdl7pab|stbhg|dhcplay|gradehgplus|tryzendm|dumbalag|hg(?:bazooka|link|cloud)|haxloppd|daviod|kravaxxa|aiavh|uasopt)\.(?:com|to|sbs|pro|xyz|store|top|site|online|me|shop|fun|click))/(?:e/|f/|d/)?([0-9a-zA-Z$:/.]+)""") }
         private val M3U8_REGEX by lazy { Regex("""https[^"]*m3u8[^"]*""") }
         private val FIX_TRACKS_REGEX by lazy { Regex("""(?<!")(file|kind|label)(?!")""") }
     }

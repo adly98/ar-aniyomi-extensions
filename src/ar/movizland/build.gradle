@@ -1,0 +1,15 @@
+ext {
+    extName = 'Moviz Land'
+    extClass = '.Movizland'
+    extVersionCode = 1
+}
+
+apply from: "$rootDir/common.gradle"
+
+dependencies {
+    implementation(project(':lib:mixdropextractor'))
+    implementation(project(":lib:universalextractor"))
+    implementation(project(":lib:voeextractor"))
+    implementation(project(":lib:doodextractor"))
+    implementation(project(":lib:streamwishextractor"))
+}
