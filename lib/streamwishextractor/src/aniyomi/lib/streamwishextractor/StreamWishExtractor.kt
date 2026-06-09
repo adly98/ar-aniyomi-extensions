@@ -21,7 +21,7 @@ class StreamWishExtractor(private val client: OkHttpClient, private val headers:
     }
 
     fun isSupported(url: String) = STREAM_WISH_REGEX.containsMatchIn(url)
-    fun videosFromUrl(url: String, prefix: String) = videosFromUrl(url) { "$prefix - $it" }
+    fun videosFromUrl(url: String, prefix: String) = videosFromUrl(url) { "$prefix: $it" }
 
     fun videosFromUrl(url: String, videoNameGen: (String) -> String = { quality -> "StreamWish: $quality" }): List<Video> {
         val embedUrl = getEmbedUrl(url).toHttpUrl()

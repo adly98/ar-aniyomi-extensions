@@ -86,9 +86,9 @@ class Tuktukcinema :
             }.let(::listOf)
         } else {
             val selectedSeason = document.selectFirst("div#mpbreadcrumbs a span:contains(الموسم)")?.text().orEmpty()
-            seasonsDOM.reversed().flatMap { season ->
+            seasonsDOM.reversed().map { season ->
                 val seasonText = season.select("h3").text()
-                val seasonUrl = season.selectFirst("a")?.attr("abs:href") ?: return@flatMap emptyList()
+                val seasonUrl = season.selectFirst("a")?.attr("abs:href") ?: return emptyList()
                 val seasonDoc = if (selectedSeason == seasonText) {
                     document
                 } else {
@@ -104,7 +104,7 @@ class Tuktukcinema :
                         episode_number = ("$seasonNum.$episodeNum").toFloat()
                     }
                 }
-            }
+            }.flatten()
         }
     }
 
@@ -116,7 +116,7 @@ class Tuktukcinema :
 
     override fun videoListParse(response: Response): List<Video> {
         val document = response.asJsoup()
-        val providerList = document.select(videoListSelector()).flatMap { selector ->
+        val providerList = document.select(videoListSelector()).map { selector ->
             val url = selector.attr("data-link").substringBefore("0REL0Y").reversed().let {
                 String(Base64.decode(it, Base64.DEFAULT), Charsets.UTF_8)
             }
@@ -126,7 +126,7 @@ class Tuktukcinema :
                 val text = selector.text().lowercase()
                 MegaMaxMultiServer.Provider(url, text, "", "").let(::listOf)
             }
-        }
+        }.flatten()
         val videoList = providerList.parallelCatchingFlatMapBlocking {
             extractVideos(it.url, it.name, it.quality)
         }
@@ -149,21 +149,17 @@ class Tuktukcinema :
         server: String,
         customQuality: String? = null,
     ): List<Video> = when {
-        // "mixdrop" in server -> {
-        //    mixDropExtractor.videosFromUrl(url, "Ar", customQuality?.let { "$it " } ?: "")
-        // }
+        mixDropExtractor.isSupported(url) -> {
+            mixDropExtractor.videosFromUrl(url, customQuality ?: "")
+        }
 
         "dood" in server -> {
             doodExtractor.videosFromUrl(url, customQuality)
         }
 
-        "lulustream" in server -> {
+        streamWishExtractor.isSupported(url) -> {
             streamWishExtractor.videosFromUrl(url, server.replaceFirstChar(Char::titlecase))
         }
-
-//        "earnvids" in server || "krakenfiles" in server || "mp4" in server -> {
-//            universalExtractor.videosFromUrl(url, server, customQuality)
-//        }
 
         else -> universalExtractor.videosFromUrl(url, server, customQuality)
     }
